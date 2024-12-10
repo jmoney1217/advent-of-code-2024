@@ -40,17 +40,19 @@ def part1(lines):
     x = start_x
     y = start_y
     p1data = copy.deepcopy(data)
-    steps=0
     while True:
         new_x = x + offset_x
         new_y = y + offset_y
-        try:
-            new = p1data[new_y][new_x]
-        except IndexError:
+
+        if not (0 <= new_x < len(data[0]) and 0 <= new_y < len(data)):
             print("Leaving area at: [{},{}] offset [{},{}]".format(x, y, offset_x, offset_y))
             break
+            
+        new = p1data[new_y][new_x]
+
         if new in ["#", "$"]:
             offset_x, offset_y, direction = rot90(offset_x, offset_y, direction)
+            print("Obstacle at [{},{}], turn right to go [{}]".format(new_x, new_y, direction))
             continue
         if new != "X":
             answer += 1
@@ -59,20 +61,15 @@ def part1(lines):
         x = new_x
         y = new_y
         p1data[y][x] = "X"
-        steps += 1
-        if steps > (len(data)*len(data[0])):
-            print("We've LOOPED! Abort!")
-            sys.exit(1)
 
-    for y in p1data:
-        for x in y:
-            print(x, end="")
-        print()
+    # for y in p1data:
+    #     for x in y:
+    #         print(x, end="")
+    #     print()
     
     print("---")
     print(answer)
 
-    sys.exit(0)
     # Part 2
     answer = 0
     for path_y, path_row in enumerate(p1data):
@@ -85,27 +82,31 @@ def part1(lines):
                 p2data[path_y][path_x] = "$" # new obstacle
                 x = start_x
                 y = start_y
-                p2data[start_x][start_y] = "X" # START
+                p2data[start_y][start_x] = "X" # START
                 offset_x = 0
                 offset_y = -1
                 direction = "N"
                 loop_check = defaultdict(lambda: "")
+                loop_check[(start_x, start_y)] += direction
                 while True:
                     new_x = x + offset_x
                     new_y = y + offset_y
-                    try:
-                        new = p2data[new_y][new_x]
-                    except IndexError:
-                        # print("Leaving area at: [{},{}] offset [{},{}]".format(x, y, offset_x, offset_y))
+
+                    if not (0 <= new_x < len(data[0]) and 0 <= new_y < len(data)):
                         print("-", end="", flush=True)
                         break
+
+                    new = p2data[new_y][new_x]
+
                     if new in ["#", "$"]:
                         offset_x, offset_y, direction = rot90(offset_x, offset_y, direction)
+                        if direction in loop_check[(x, y)]:
+                            print("+", end="", flush=True)
+                            answer += 1
+                            break
+                        loop_check[(x,y)] += direction
                         continue
-                    if new != "X":
-                        pass
-                    elif direction in loop_check[(new_x, new_y)]:
-                        print("LOOPING! [{}, {}]".format(path_x, path_y))
+                    elif new == "X" and direction in loop_check[(new_x, new_y)]:
                         print("+", end="", flush=True)
                         answer += 1
                         break
@@ -113,7 +114,6 @@ def part1(lines):
                     y = new_y
                     p2data[y][x] = "X"
                     loop_check[(x,y)] += direction
-
     print("---")
     print(answer)
 
