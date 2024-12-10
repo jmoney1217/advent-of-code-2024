@@ -1,5 +1,6 @@
 # No AoC input files!
 *.txt
+.tmp.*
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
